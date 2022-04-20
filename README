@@ -1,26 +1,22 @@
-st - simple terminal
---------------------
+# st - simple terminal
+
 st is a simple virtual terminal emulator for X which sucks less.
 
 
-Requirements
-------------
+## Requirements
+
 In order to build st you need the Xlib header files.
 
 
-Installation
-------------
-Edit config.mk to match your local setup (st is installed into
-the /usr/local namespace by default).
+## Installation
 
-Afterwards enter the following command to build and install st (if
-necessary as root):
+Build and install st (if necessary as root):
 
-    make clean install
+    $ make
 
 
-Running st
-----------
+## Running st
+
 If you don't install st, define TNAME to "xterm" in config.h or make sure to at
 least compile st terminfo entry with the following command:
 
@@ -30,6 +26,6 @@ It should print the path of the compiled terminfo entry. You can
 safely remove it if you don't plan to use st anymore.
 See the man page for additional details.
 
-Credits
--------
+## Credits
+
 Based on  Aurélien APTEL <aurelien dot aptel at gmail dot com> bt source code.

@@ -1,8 +1,8 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static char font[] = "./LiberationMono-Regular.ttf:./LiberationMono-Bold.ttf";
-static int fontsize = 12;
+static char font[] = "./SourceCodePro-Regular.ttf";
+static int fontsize = 16;
 static int borderpx = 2;
 static char shell[] = "/bin/sh";
 
@@ -15,6 +15,15 @@ static char termname[] = "st-256color";
 
 static unsigned int tabspaces = 8;
 #define WORD_BREAK " "
+
+/* Font mode */
+enum fontmode {
+	FM_QUICK      = 0,
+	FM_NICE       = 1,
+	FM_ULTRA_NICE = 2,
+};
+
+enum fontmode fontmode = FM_ULTRA_NICE;
 
 /* Terminal colors (16 first used in escape sequence) */
 SDL_Color colormap[] = {
@@ -93,8 +102,10 @@ static Key key[] = {
 #define MODKEY KMOD_ALT
 
 static Shortcut shortcuts[] = {
-	/* modifier		key		function	argument */
-	{ MODKEY|KMOD_SHIFT,	SDLK_PAGEUP,	xzoom,		{.i = +1} },
-	{ MODKEY|KMOD_SHIFT,	SDLK_PAGEDOWN,	xzoom,		{.i = -1} },
+	/* modifier	key			function	argument */
+	{ MODKEY,	SDLK_KP_PLUS,		xzoom,		{.i = +1} },
+	{ MODKEY,	SDLK_KP_MINUS,		xzoom,		{.i = -1} },
+	{ MODKEY,	SDLK_KP_MULTIPLY,	changefontmode,	{.i = +1} },
+	{ MODKEY,	SDLK_KP_DIVIDE,		changefontmode,	{.i = -1} },
 };
 

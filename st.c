@@ -242,6 +242,7 @@ typedef struct {
 
 /* function definitions used in config.h */
 static void xzoom(const Arg *);
+static void changefontmode(const Arg *);
 
 /* Config.h for applying patches and the configuration. */
 #include "st.h"
@@ -249,7 +250,7 @@ static void xzoom(const Arg *);
 /* Drawing Context */
 typedef struct {
 	SDL_Color colors[LEN(colormap) < 256 ? 256 : LEN(colormap)];
-	TTF_Font *font, *ifont, *bfont, *ibfont;
+	TTF_Font *font, *bfont;
 } DC;
 
 static void die(const char *, ...);
@@ -2197,41 +2198,48 @@ xclear(int x1, int y1, int x2, int y2) {
 }
 
 void
-sdlloadfonts(char *fontstr, int fontsize) {
-	char *bfontstr;
+sdlloadfonts(char *fontstr, char *bfontstr, int fontsize) {
 
 	usedfont = fontstr;
 	usedfontsize = fontsize;
-
-	/* XXX: Strongly assumes the original setting had a : in it! */
-	if((bfontstr = strchr(fontstr, ':'))) {
-		*bfontstr = '\0';
-		bfontstr++;
-	} else {
-		bfontstr = strchr(fontstr, '\0');
-		bfontstr++;
-	}
 
 	if(dc.font) TTF_CloseFont(dc.font);
 	dc.font = TTF_OpenFont(fontstr, fontsize);
 	TTF_SizeUTF8(dc.font, "O", &xw.cw, &xw.ch);
 
-	if(dc.ifont) TTF_CloseFont(dc.ifont);
-	dc.ifont = TTF_OpenFont(fontstr, fontsize);
-	TTF_SetFontStyle(dc.ifont, TTF_STYLE_ITALIC);
-
 	if(dc.bfont) TTF_CloseFont(dc.bfont);
 	dc.bfont = TTF_OpenFont(bfontstr, fontsize);
-
-	if(dc.ibfont) TTF_CloseFont(dc.ibfont);
-	dc.ibfont = TTF_OpenFont(bfontstr, fontsize);
-	TTF_SetFontStyle(dc.ibfont, TTF_STYLE_ITALIC);
 }
 
 void
 xzoom(const Arg *arg)
 {
-	sdlloadfonts(usedfont, usedfontsize + arg->i);
+	sdlloadfonts(usedfont, usedfont, usedfontsize + arg->i);
+	cresize(0, 0);
+	draw();
+}
+
+void
+changefontmode(const Arg *arg)
+{
+	enum fontmode new_fontmode = fontmode;
+
+	/* Quality up */
+	if (arg->i == 1) {
+		if (fontmode == FM_QUICK)
+			new_fontmode = FM_NICE;
+		if (fontmode == FM_NICE)
+			new_fontmode = FM_ULTRA_NICE;
+	}
+
+	/* Reset quality */
+	if (arg->i == -1) {
+		new_fontmode = FM_QUICK;
+	}
+	
+	fprintf(stderr, "Update font mode: %d\n", new_fontmode);
+	fontmode = new_fontmode;
+
 	cresize(0, 0);
 	draw();
 }
@@ -2246,7 +2254,7 @@ void
 sdlinit(void) {
 	const SDL_VideoInfo *vi;
 
-	dc.font = dc.ifont = dc.bfont = dc.ibfont = NULL;
+	dc.font = dc.bfont = NULL;
 
 	if(SDL_Init(SDL_INIT_VIDEO) == -1) {
 		fprintf(stderr,"Unable to initialize SDL: %s\n", SDL_GetError());
@@ -2268,7 +2276,7 @@ sdlinit(void) {
 
 	/* font */
 	usedfont = (opt_font == NULL)? font : opt_font;
-	sdlloadfonts(usedfont, fontsize);
+	sdlloadfonts(usedfont, usedfont, fontsize);
 
 	/* colors */
 	initcolormap();
@@ -2331,11 +2339,6 @@ xdraws(char *s, Glyph base, int x, int y, int charlen, int bytelen) {
 		font = dc.bfont;
 	}
 
-	if(base.mode & ATTR_ITALIC)
-		font = dc.ifont;
-	if((base.mode & ATTR_ITALIC) && (base.mode & ATTR_BOLD))
-		font = dc.ibfont;
-
 	if(IS_SET(MODE_REVERSE)) {
 		if(fg == &dc.colors[defaultfg]) {
 			fg = &dc.colors[defaultbg];
@@ -2378,8 +2381,18 @@ xdraws(char *s, Glyph base, int x, int y, int charlen, int bytelen) {
 		SDL_Rect r = {winx, winy, width, xw.ch};
 
 		SDL_FillRect(xw.win, &r, SDL_MapRGB(xw.win->format, bg->r, bg->g, bg->b));
-		if(!(text_surface=TTF_RenderUTF8_Solid(font,s,*fg))) {
-			printf("Could not TTF_RenderUTF8_Solid: %s\n", TTF_GetError());
+		if (fontmode == FM_QUICK) {
+			text_surface = TTF_RenderUTF8_Solid(font, s, *fg);
+		} else if (fontmode == FM_NICE) {
+			text_surface = TTF_RenderUTF8_Shaded(font, s, *fg, *bg);
+		} else if (fontmode == FM_ULTRA_NICE) {
+			text_surface = TTF_RenderUTF8_Blended(font, s, *fg);
+		} else {
+			printf("Could not set fontmode\n");
+			exit(EXIT_FAILURE);
+		}
+		if(!text_surface) {
+			printf("Could not render text: %s\n", TTF_GetError());
 			exit(EXIT_FAILURE);
 		} else {
 			SDL_BlitSurface(text_surface,NULL,xw.win,&r);
@@ -2568,19 +2581,18 @@ kpress(SDL_Event *ev) {
 	int meta, shift, i;
 	SDLKey ksym = e->keysym.sym;
 
-	if (IS_SET(MODE_KBDLOCK))
+	if (IS_SET(MODE_KBDLOCK)) {
 		return;
+	}
 
 	meta = e->keysym.mod & KMOD_ALT;
 	shift = e->keysym.mod & KMOD_SHIFT;
 
 	/* 1. shortcuts */
 	for(i = 0; i < LEN(shortcuts); i++) {
-		if((ksym == shortcuts[i].keysym)
-				&& ((CLEANMASK(shortcuts[i].mod) & \
-					CLEANMASK(e->keysym.mod)) == CLEANMASK(e->keysym.mod))
-				&& shortcuts[i].func) {
+		if ((ksym == shortcuts[i].keysym) && shortcuts[i].func) {
 			shortcuts[i].func(&(shortcuts[i].arg));
+			return;
 		}
 	}
 

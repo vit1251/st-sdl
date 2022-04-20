@@ -8,9 +8,6 @@ sources = [
     'st.c'
 ]
 
-#CFLAGS   = -g -std=c99 -pedantic -Wall -Os -I. -I/usr/include -DVERSION="0.3" -I/usr/include/SDL -D
-#LDFLAGS  = -g -L/usr/lib -lc -lutil -L/usr/lib -lSDL -lpthread -lSDL_ttf
-
 executable('st', sources,
     dependencies: [ SDL, SDL_ttf ],
     c_args : [
