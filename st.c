@@ -244,7 +244,7 @@ typedef struct {
 static void xzoom(const Arg *);
 
 /* Config.h for applying patches and the configuration. */
-#include "config.h"
+#include "st.h"
 
 /* Drawing Context */
 typedef struct {
@@ -2237,6 +2237,12 @@ xzoom(const Arg *arg)
 }
 
 void
+sdlfini(void) {
+	TTF_Quit();
+	SDL_Quit();
+}
+
+void
 sdlinit(void) {
 	const SDL_VideoInfo *vi;
 
@@ -2254,12 +2260,8 @@ sdlinit(void) {
 		exit(EXIT_FAILURE);
 	}
 
-	if(atexit(TTF_Quit)) {
+	if(atexit(sdlfini)) {
 		fprintf(stderr,"Unable to register TTF_Quit atexit\n");
-	}
-
-	if(atexit(SDL_Quit)) {
-		fprintf(stderr,"Unable to register SDL_Quit atexit\n");
 	}
 
 	vi = SDL_GetVideoInfo();
