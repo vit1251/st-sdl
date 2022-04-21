@@ -2646,6 +2646,10 @@ kpress(SDL_Event *ev) {
 				selpaste();
 			break;
 
+		case SDL_SCANCODE_TAB:
+			ttywrite("\t", 1);
+			break;
+
 		case SDL_SCANCODE_RETURN:
 			if(meta)
 				ttywrite("\033", 1);
