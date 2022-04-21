@@ -74,38 +74,39 @@ static unsigned int defaultucs = 257;
 
 /* key, mask, output */
 static Key key[] = {
-	{ SDLK_LEFT,      KMOD_ALT,  "\033[1;3D" },
-	{ SDLK_RIGHT,     KMOD_ALT,  "\033[1;3C" },
 
-	{ SDLK_BACKSPACE, 0, "\177" },
-	{ SDLK_INSERT,    0, "\033[2~" },
-	{ SDLK_DELETE,    0, "\033[3~" },
-	{ SDLK_HOME,      0, "\033[1~" },
-	{ SDLK_END,       0, "\033[4~" },
-	{ SDLK_PAGEUP,    0, "\033[5~" },
-	{ SDLK_PAGEDOWN,  0, "\033[6~" },
-	{ SDLK_F1,        0, "\033OP"   },
-	{ SDLK_F2,        0, "\033OQ"   },
-	{ SDLK_F3,        0, "\033OR"   },
-	{ SDLK_F4,        0, "\033OS"   },
-	{ SDLK_F5,        0, "\033[15~" },
-	{ SDLK_F6,        0, "\033[17~" },
-	{ SDLK_F7,        0, "\033[18~" },
-	{ SDLK_F8,        0, "\033[19~" },
-	{ SDLK_F9,        0, "\033[20~" },
-	{ SDLK_F10,       0, "\033[21~" },
-	{ SDLK_F11,       0, "\033[23~" },
-	{ SDLK_F12,       0, "\033[24~" },
+//	{ SDLK_LEFT,      KMOD_ALT,  "\033[1;3D" },
+//	{ SDLK_RIGHT,     KMOD_ALT,  "\033[1;3C" },
+
+	{ SDL_SCANCODE_BACKSPACE, 0, "\177" },
+	{ SDL_SCANCODE_INSERT,    0, "\033[2~" },
+	{ SDL_SCANCODE_DELETE,    0, "\033[3~" },
+	{ SDL_SCANCODE_HOME,      0, "\033[1~" },
+	{ SDL_SCANCODE_END,       0, "\033[4~" },
+	{ SDL_SCANCODE_PAGEUP,    0, "\033[5~" },
+	{ SDL_SCANCODE_PAGEDOWN,  0, "\033[6~" },
+	{ SDL_SCANCODE_F1,        0, "\033OP"   },
+	{ SDL_SCANCODE_F2,        0, "\033OQ"   },
+	{ SDL_SCANCODE_F3,        0, "\033OR"   },
+	{ SDL_SCANCODE_F4,        0, "\033OS"   },
+	{ SDL_SCANCODE_F5,        0, "\033[15~" },
+	{ SDL_SCANCODE_F6,        0, "\033[17~" },
+	{ SDL_SCANCODE_F7,        0, "\033[18~" },
+	{ SDL_SCANCODE_F8,        0, "\033[19~" },
+	{ SDL_SCANCODE_F9,        0, "\033[20~" },
+	{ SDL_SCANCODE_F10,       0, "\033[21~" },
+	{ SDL_SCANCODE_F11,       0, "\033[23~" },
+	{ SDL_SCANCODE_F12,       0, "\033[24~" },
+	
 };
 
 /* Internal shortcuts. */
 #define MODKEY KMOD_ALT
 
 static Shortcut shortcuts[] = {
-	/* modifier	key			function	argument */
-	{ MODKEY,	SDLK_KP_PLUS,		xzoom,		{.i = +1} },
-	{ MODKEY,	SDLK_KP_MINUS,		xzoom,		{.i = -1} },
-	{ MODKEY,	SDLK_KP_MULTIPLY,	changefontmode,	{.i = +1} },
-	{ MODKEY,	SDLK_KP_DIVIDE,		changefontmode,	{.i = -1} },
+	/* modifier	key				function	argument */
+	{ MODKEY,	SDL_SCANCODE_KP_PLUS,		xzoom,		{.i = +1} },
+	{ MODKEY,	SDL_SCANCODE_KP_MINUS,		xzoom,		{.i = -1} },
+	{ MODKEY,	SDL_SCANCODE_KP_MULTIPLY,	changefontmode,	{.i = +1} },
+	{ MODKEY,	SDL_SCANCODE_KP_DIVIDE,		changefontmode,	{.i = -1} },
 };
-

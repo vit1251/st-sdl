@@ -315,6 +315,8 @@ static void visibility(SDL_Event *);
 static void unmap(SDL_Event *);
 static char *kmap(SDL_Scancode, SDL_Keymod);
 static void kpress(SDL_Event *);
+static void app_quit(SDL_Event *);
+static void textinput(SDL_Event *);
 static void cresize(int width, int height);
 static void resize(SDL_Event *);
 static void focus(SDL_Event *);
@@ -343,9 +345,12 @@ static void *xrealloc(void *, size_t);
 static void *xcalloc(size_t nmemb, size_t size);
 static void xflip(void);
 
+
 static void (*handler[SDL_LASTEVENT])(SDL_Event *) = {
 
 	[SDL_KEYDOWN] = kpress,
+	[SDL_TEXTINPUT] = textinput,
+//	[SDL_TEXTEDITING] = 
 
 	[SDL_WINDOWEVENT_RESIZED] = resize,
 
@@ -359,6 +364,8 @@ static void (*handler[SDL_LASTEVENT])(SDL_Event *) = {
 //	[SelectionClear] = selclear,
 //	[SelectionNotify] = selnotify,
 //	[SelectionRequest] = selrequest,
+
+	[SDL_QUIT] = app_quit,
 
 };
 
@@ -2397,8 +2404,7 @@ xdraws(char *s, Glyph base, int x, int y, int charlen, int bytelen) {
 				fprintf(stderr, "Could not create texture\n");
 				exit(EXIT_FAILURE);
 			}
-			SDL_RenderCopy(xw.rdr, tex, NULL, NULL);
-//			SDL_BlitSurface(text_surface,NULL,xw.win,&r);
+			SDL_RenderCopy(xw.rdr, tex, NULL, &r);
 			SDL_DestroyTexture(tex);
 			SDL_FreeSurface(text_surface);
 		}
@@ -2576,15 +2582,29 @@ kmap(SDL_Scancode sc, SDL_Keymod state) {
 }
 
 void
+app_quit(SDL_Event *ev) {
+	SDL_Log("Program quit after %i ticks", ev->quit.timestamp);
+	SDL_Quit();
+}
+
+void
+textinput(SDL_Event *ev) {
+	SDL_Log("Input %s", ev->text.text);
+	size_t len = strlen(ev->text.text);
+//TODO - 				int len = utf8encode(&u, buf);
+//TODO - 				if(meta && len == 1)
+//TODO - 					ttywrite("\033", 1);
+	ttywrite(ev->text.text, len);
+}
+
+void
 kpress(SDL_Event *ev) {
 	SDL_KeyboardEvent *e = &ev->key;
 	char buf[32], *customkey;
-	int meta, shift, i;
-	SDL_Scancode sc = e->keysym.sym;
-
-	if (IS_SET(MODE_KBDLOCK)) {
-		return;
-	}
+	bool meta, shift;
+	int i;
+	SDL_Scancode sc = e->keysym.scancode;
+	SDL_Keycode sym = e->keysym.sym;
 
 	meta = e->keysym.mod & KMOD_ALT;
 	shift = e->keysym.mod & KMOD_SHIFT;
@@ -2597,7 +2617,7 @@ kpress(SDL_Event *ev) {
 		}
 	}
 
-	/* 2. custom keys from config.h */
+	/* 2. custom keys from st.h */
 	if((customkey = kmap(sc, e->keysym.mod))) {
 		ttywrite(customkey, strlen(customkey));
 
@@ -2635,16 +2655,6 @@ kpress(SDL_Event *ev) {
 			} else {
 				ttywrite("\r", 1);
 			}
-			break;
-			/* 3. X lookup  */
-		default:
-//TODO - 			if(e->keysym.unicode) {
-//TODO - 				long u = e->keysym.unicode;
-//TODO - 				int len = utf8encode(&u, buf);
-//TODO - 				if(meta && len == 1)
-//TODO - 					ttywrite("\033", 1);
-//TODO - 				ttywrite(buf, len);
-//TODO - 			}
 			break;
 		}
 	}
