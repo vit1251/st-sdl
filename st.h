@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static char font[] = "./SourceCodePro-Regular.ttf";
+static char font[] = "/usr/local/share/fonts/SourceCodePro/SourceCodePro-Regular.ttf";
 static int fontsize = 16;
 static int borderpx = 2;
 static char shell[] = "/bin/sh";
