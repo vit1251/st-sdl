@@ -319,6 +319,7 @@ static void app_quit(SDL_Event *);
 static void textinput(SDL_Event *);
 static void cresize(int width, int height);
 static void resize(SDL_Event *);
+static void win_event(SDL_Event *);
 static void focus(SDL_Event *);
 //TODO - static void activeEvent(SDL_Event *);
 static void brelease(SDL_Event *);
@@ -352,7 +353,7 @@ static void (*handler[SDL_LASTEVENT])(SDL_Event *) = {
 	[SDL_TEXTINPUT] = textinput,
 //	[SDL_TEXTEDITING] = 
 
-	[SDL_WINDOWEVENT_RESIZED] = resize,
+	[SDL_WINDOWEVENT] = win_event,
 
 //	[SDL_VIDEOEXPOSE] = expose,
 //	[SDL_ACTIVEEVENT] = activeEvent,
@@ -2682,6 +2683,27 @@ cresize(int width, int height)
 	tresize(col, row);
 	xresize(col, row);
 	ttyresize();
+}
+
+void win_event(SDL_Event *ev) {
+	if (ev->window.event == SDL_WINDOWEVENT_EXPOSED) {
+		SDL_Log("Expose");
+		xflip();
+	} else if (ev->window.event == SDL_WINDOWEVENT_RESIZED) {
+		int w = ev->window.data1;
+		int h = ev->window.data2;
+		SDL_Log("Resized");
+		cresize(w, h);
+	} else if (ev->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+		SDL_Log("Size changed");
+	} else if (ev->window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+		SDL_Log("Focus gain");
+	} else if (ev->window.event == 	SDL_WINDOWEVENT_FOCUS_LOST) {
+		SDL_Log("Focus lost");
+	} else if (ev->window.event == 	SDL_WINDOWEVENT_CLOSE) {
+		SDL_Log("Quit window event");
+		SDL_Quit();
+	}
 }
 
 void
